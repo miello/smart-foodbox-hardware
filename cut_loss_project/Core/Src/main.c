@@ -565,7 +565,6 @@ void StartWeightSense(void *argument)
 		/**
 		 * Weight sensing part
 		 */
-		osMutexAcquire(WeightMutexHandle, HAL_MAX_DELAY);
 		now_weight = read_weight_average();
 		uint8_t is_transmit_data = 0;
 		if (now_weight > captured_weight
@@ -612,7 +611,6 @@ void StartWeightSense(void *argument)
 				HAL_I2C_Slave_Transmit(&hi2c1, ch, sz, 10000);
 			}
 		}
-		osMutexRelease(WeightMutexHandle);
 	}
   /* USER CODE END StartWeightSense */
 }
@@ -632,10 +630,8 @@ void ResetWeightHandle(void *argument)
 	 * Reset button (on board)
 	 */
 	for (;;) {
-
 		GPIO_PinState btn = HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin);
 		if (btn == GPIO_PIN_RESET) {
-			osMutexAcquire(WeightMutexHandle, HAL_MAX_DELAY);
 			HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 			for (int i = 0; i < 10; ++i) {
 				set_zero_weight();
@@ -643,8 +639,6 @@ void ResetWeightHandle(void *argument)
 			while (HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) == GPIO_PIN_RESET)
 				osDelay(50);
 			HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
-
-			osMutexRelease(WeightMutexHandle);
 		}
 		osDelay(10);
 	}
@@ -682,7 +676,7 @@ void StartWatchLDR(void *argument)
 			HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 		}
 
-		osDelay(50);
+		osDelay(3000);
 	}
   /* USER CODE END StartWatchLDR */
 }

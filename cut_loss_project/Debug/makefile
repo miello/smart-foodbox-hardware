@@ -64,8 +64,8 @@ all: main-build
 main-build: cut_loss_project.elf secondary-outputs
 
 # Tool invocations
-cut_loss_project.elf: $(OBJS) $(USER_OBJS) E:\Embbed_Sys_Lab\cut_loss_project\STM32F411RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "cut_loss_project.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"E:\Embbed_Sys_Lab\cut_loss_project\STM32F411RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="cut_loss_project.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+cut_loss_project.elf: $(OBJS) $(USER_OBJS) E:\smart-foodbox-hardware\cut_loss_project\STM32F411RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "cut_loss_project.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"E:\smart-foodbox-hardware\cut_loss_project\STM32F411RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="cut_loss_project.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
