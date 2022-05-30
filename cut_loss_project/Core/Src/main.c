@@ -65,7 +65,7 @@ osThreadId_t resetWeightHandle;
 const osThreadAttr_t resetWeight_attributes = {
   .name = "resetWeight",
   .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityLow,
+  .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for ledDisplay */
 osThreadId_t ledDisplayHandle;
@@ -80,11 +80,12 @@ const osMutexAttr_t WeightMutex_attributes = {
   .name = "WeightMutex"
 };
 /* USER CODE BEGIN PV */
-const uint32_t AVERAGE_ROUND = 15;
+const uint32_t AVERAGE_ROUND = 30;
 uint32_t base_weight = 0;
-uint32_t result_offset = 5000;
+uint32_t result_offset = 7000;
 uint32_t divider = 60;
 uint32_t AD_RES;
+uint8_t is_reset = 0;
 
 // Positive difference threshold
 const uint32_t POSITIVE_THRESHOLD = 300;
@@ -152,18 +153,22 @@ uint32_t read_weight(uint8_t tuning) {
 
 	for (int i = 0; i < 24; ++i) {
 		HAL_GPIO_WritePin(Weight_SCK_GPIO_Port, Weight_SCK_Pin, GPIO_PIN_SET);
-		hx711_delay_us(100);
+		hx711_delay_us(20);
 
 		count <<= 1;
 
 		HAL_GPIO_WritePin(Weight_SCK_GPIO_Port, Weight_SCK_Pin, GPIO_PIN_RESET);
-		hx711_delay_us(100);
+		hx711_delay_us(20);
 		if (HAL_GPIO_ReadPin(Weight_SDA_GPIO_Port, Weight_SDA_Pin)
 				== GPIO_PIN_SET)
 			++count;
 	}
 
 	count ^= 0x800000;
+	HAL_GPIO_WritePin(Weight_SDA_GPIO_Port, Weight_SDA_Pin, GPIO_PIN_SET);
+	hx711_delay_us(20);
+	HAL_GPIO_WritePin(Weight_SDA_GPIO_Port, Weight_SDA_Pin, GPIO_PIN_RESET);
+	hx711_delay_us(20);
 
 	if (tuning == 1)
 		return count;
@@ -178,6 +183,7 @@ uint32_t read_weight_average() {
 		uint32_t nxt = read_weight(0) / divider;
 
 		now += nxt;
+		osDelay(1);
 	}
 
 	if (now <= result_offset)
@@ -190,6 +196,7 @@ void set_zero_weight() {
 	for (int i = 0; i < AVERAGE_ROUND; ++i) {
 		uint32_t nxt = read_weight(1);
 		now += nxt;
+		osDelay(1);
 		if (nxt == 0) {
 			--i;
 			continue;
@@ -247,8 +254,8 @@ int main(void)
 	// ESP Connection Testing
 	HAL_StatusTypeDef esp_check;
 	while (1) {
-		esp_check = HAL_I2C_Slave_Transmit(&hi2c1, "04", 2, 10000);
-		esp_check |= HAL_I2C_Slave_Transmit(&hi2c1, "Test", 4, 10000);
+		esp_check = HAL_I2C_Slave_Transmit(&hi2c1, "04", 2, 1000);
+		esp_check |= HAL_I2C_Slave_Transmit(&hi2c1, "Test", 4, 1000);
 
 		if (esp_check == HAL_OK)
 			break;
@@ -565,25 +572,29 @@ void StartWeightSense(void *argument)
 		/**
 		 * Weight sensing part
 		 */
+		if(is_reset) {
+			osDelay(10);
+			continue;
+		}
 		now_weight = read_weight_average();
-		uint8_t is_transmit_data = 0;
+		uint8_t is_transmit_data = 0, is_set_data = 0;
 		if (now_weight > captured_weight
 				&& now_weight - captured_weight >= POSITIVE_THRESHOLD) {
-			osDelay(75);
+			osDelay(50);
 			now_weight = read_weight_average();
 			if (now_weight > captured_weight
 					&& now_weight - captured_weight >= POSITIVE_THRESHOLD) {
-				captured_weight = now_weight;
 				is_transmit_data = 1;
+				is_set_data = 1;
 			}
 		} else if (now_weight < captured_weight
 				&& captured_weight - now_weight >= NEGATIVE_THRESHOLD) {
 			// There may have some of measurement delay when place object
-			osDelay(75);
+			osDelay(50);
 			now_weight = read_weight_average();
 			if (now_weight < captured_weight
 					&& captured_weight - now_weight >= NEGATIVE_THRESHOLD) {
-				captured_weight = now_weight;
+				is_set_data = 1;
 			}
 		}
 
@@ -592,25 +603,29 @@ void StartWeightSense(void *argument)
 		 * 1) Send data length
 		 * 2) Send data content
 		 */
+		if(is_set_data) {
+			uint32_t tmp = captured_weight;
+			captured_weight = now_weight;
+			if (is_transmit_data) {
+				uint8_t ch[30] = "";
+				uint8_t szch[2] = "";
 
-		if (is_transmit_data) {
-			uint8_t ch[30] = "";
-			uint8_t szch[2] = "";
+				int sz = sprintf(ch, "%d", captured_weight - tmp);
 
-			int sz = sprintf(ch, "%d", captured_weight);
+				if (sz < 10) {
+					sprintf(szch, "0%d", sz);
+				} else {
+					sprintf(szch, "%d", sz);
+				}
 
-			if (sz < 10) {
-				sprintf(szch, "0%d", sz);
-			} else {
-				sprintf(szch, "%d", sz);
-			}
-
-			HAL_StatusTypeDef result_sz = HAL_I2C_Slave_Transmit(&hi2c1, szch,
-					2, 10000);
-			if (result_sz == HAL_OK) {
-				HAL_I2C_Slave_Transmit(&hi2c1, ch, sz, 10000);
+				HAL_StatusTypeDef result_sz = HAL_I2C_Slave_Transmit(&hi2c1, szch,
+						2, 10000);
+				if (result_sz == HAL_OK) {
+					HAL_I2C_Slave_Transmit(&hi2c1, ch, sz, 10000);
+				}
 			}
 		}
+		osDelay(50);
 	}
   /* USER CODE END StartWeightSense */
 }
@@ -632,13 +647,17 @@ void ResetWeightHandle(void *argument)
 	for (;;) {
 		GPIO_PinState btn = HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin);
 		if (btn == GPIO_PIN_RESET) {
+			is_reset = 1;
 			HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 			for (int i = 0; i < 10; ++i) {
 				set_zero_weight();
+				osDelay(1);
 			}
+			captured_weight = 0;
 			while (HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) == GPIO_PIN_RESET)
 				osDelay(50);
 			HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+			is_reset = 0;
 		}
 		osDelay(10);
 	}
@@ -670,7 +689,7 @@ void StartWatchLDR(void *argument)
 		LDR_MX = tmp > LDR_MX ? tmp : LDR_MX;
 		LDR_MN = tmp < LDR_MN ? tmp : LDR_MN;
 
-		if (calC < 0.3) {
+		if (calC < 0.4) {
 			HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
 		} else {
 			HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);

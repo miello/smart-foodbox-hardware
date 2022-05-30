@@ -1,5 +1,8 @@
 #include "esp_camera.h"
-#include <WiFi.h>
+#include <Wire.h>
+#include <Arduino.h>
+#include <HTTPClient.h>
+#include <base64.h>
 
 //
 // WARNING!!! PSRAM IC required for UXGA resolution and high JPEG quality
@@ -19,15 +22,26 @@
 
 #include "camera_pins.h"
 
-const char* ssid = "*********";
-const char* password = "*********";
-
+const char* ssid = "********";
+const char* password = "********";
+const int LED_PIN = 33;
+const int SDA_PIN = 12;
+const int SCK_PIN = 13;
+const char* endpoint = "<API URL>";
 void startCameraServer();
 
 void setup() {
   Serial.begin(115200);
   Serial.setDebugOutput(true);
   Serial.println();
+  pinMode(LED_PIN, OUTPUT);
+  Wire.begin(SDA_PIN, SCK_PIN);
+  
+  for (uint8_t t = 4; t > 0; t--) {
+    Serial.printf("[SETUP] WAIT %d...\n", t);
+    Serial.flush();
+    delay(1000);
+  }
 
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
@@ -62,6 +76,7 @@ void setup() {
     config.jpeg_quality = 12;
     config.fb_count = 1;
   }
+  digitalWrite(LED_PIN, HIGH); 
 
 #if defined(CAMERA_MODEL_ESP_EYE)
   pinMode(13, INPUT_PULLUP);
@@ -106,7 +121,129 @@ void setup() {
   Serial.println("' to connect");
 }
 
+
 void loop() {
   // put your main code here, to run repeatedly:
-  delay(10000);
+  // request size of data
+  Wire.requestFrom(1, 2);
+  
+  if(!Wire.available()) {
+    Serial.println("Cannot reach STM32");
+    delay(250);  
+    return;
+  }
+
+  String ch_sz = "";
+  while(Wire.available()) {
+    char c = Wire.read();
+    ch_sz += c;
+    delay(100);
+  }
+  
+  Serial.println();
+  
+  // request data
+  int dat_sz = (ch_sz[0] - '0') * 10 + (ch_sz[1] - '0');
+  Serial.println(dat_sz);
+  Wire.requestFrom(1, dat_sz);
+
+  if(!Wire.available()) {
+    delay(10);  
+    return;
+  }
+
+  ch_sz = "";
+  while(Wire.available()) {
+    char c = Wire.read();
+    ch_sz += c;
+    delay(100);
+  }
+
+  Serial.println(ch_sz);
+
+  if(ch_sz == "Test") return;
+  camera_fb_t * fb = esp_camera_fb_get();
+  while(fb->len == 0) {
+    fb = esp_camera_fb_get();
+    delay(10);
+  }
+  
+  if ((WiFi.status() == WL_CONNECTED)) {
+  
+    WiFiClient client;
+//    client.setInsecure();
+  
+    HTTPClient http;
+
+    Serial.print("[HTTP] begin...\n");
+    
+    IPAddress ip(192, 168, 1, 11);
+    if(client.connect(ip, 8080)) {
+      String getAll;
+      String getBody;
+      
+      String start_request_img = "", end_request = "", start_request_weight = "";
+      start_request_img = start_request_img + "--WeightSensing\r\nContent-Disposition: form-data; name=\"esp32-cam\"; filename=\"Captured.JPG\"; size=" + fb->len + "\r\nContent-Type: image/jpeg\r\n\r\n";
+      end_request = end_request + "\r\n--WeightSensing";
+      
+      start_request_weight = start_request_weight + "Content-Disposition: form-data; name=\"weight\" \r\n\r\n";
+      
+      uint16_t full_length;
+      full_length = start_request_img.length() + fb->len + end_request.length() + start_request_weight.length() + ch_sz.length() + end_request.length() + 6;
+      client.println("POST /test HTTP/1.1");
+      client.println("Host: 192.168.1.11:8080");
+      client.println("Content-Length: " + String(full_length));
+      client.println("Content-Type: multipart/form-data; boundary=WeightSensing");
+      client.println();
+      client.print(start_request_img);
+
+      uint8_t *fbBuf = fb->buf;
+      size_t fbLen = fb->len;
+      for (size_t n=0; n<fbLen; n=n+1024) {
+        if (n+1024 < fbLen) {
+          client.write(fbBuf, 1024);
+          fbBuf += 1024;
+        }
+        else if (fbLen%1024>0) {
+          size_t remainder = fbLen%1024;
+          client.write(fbBuf, remainder);
+        }
+      }
+
+      client.println(end_request);
+      client.print(start_request_weight);
+      client.println(ch_sz);
+      client.print(end_request + "--");
+    
+      esp_camera_fb_return(fb);
+      
+      int timoutTimer = 10000;
+      long startTimer = millis();
+      boolean state = false;
+      
+      while ((startTimer + timoutTimer) > millis()) {
+        Serial.print(".");
+        delay(100);      
+        while (client.available()) {
+          char c = client.read();
+          if (c == '\n') {
+            if (getAll.length()==0) { state=true; }
+            getAll = "";
+          }
+          else if (c != '\r') { getAll += String(c); }
+          if (state==true) { getBody += String(c); }
+          startTimer = millis();
+        }
+        if (getBody.length()>0) { break; }
+      }
+      Serial.println();
+      client.stop();
+      Serial.println(getBody);
+    } else {
+      Serial.printf("[HTTP} Unable to connect\n");
+    }
+  }
+
+  esp_camera_fb_return(fb);
+  delay(500);
 }
