@@ -170,15 +170,14 @@ void loop() {
   
   if ((WiFi.status() == WL_CONNECTED)) {
   
-    WiFiClient client;
-//    client.setInsecure();
+    WiFiClientSecure client;
+    client.setInsecure();
   
     HTTPClient http;
 
     Serial.print("[HTTP] begin...\n");
     
-    IPAddress ip(192, 168, 1, 11);
-    if(client.connect(ip, 8080)) {
+    if(client.connect(base_url, 443)) {
       String getAll;
       String getBody;
       
@@ -190,8 +189,8 @@ void loop() {
       
       uint16_t full_length;
       full_length = start_request_img.length() + fb->len + end_request.length() + start_request_weight.length() + ch_sz.length() + end_request.length() + 6;
-      client.println("POST /test HTTP/1.1");
-      client.println("Host: 192.168.1.11:8080");
+      client.println("POST /api/weightChange HTTP/1.1");
+      client.println("Host: " + String(base_url));
       client.println("Content-Length: " + String(full_length));
       client.println("Content-Type: multipart/form-data; boundary=WeightSensing");
       client.println();
