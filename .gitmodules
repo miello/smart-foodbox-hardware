@@ -1,0 +1,3 @@
+[submodule "smart-foodbox-frontend"]
+	path = smart-foodbox-frontend
+	url = https://github.com/PKhing/smart-foodbox-frontend.git

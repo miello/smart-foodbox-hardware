@@ -23,13 +23,13 @@
 #include "camera_pins.h"
 
 const char* ssid = "********";
-const char* password = "********";
+const char* password = "*********";
 const int LED_PIN = 33;
 const int FLASH_LIGHT_PIN = 4;
 const int FLASH_INPUT_PIN = 15;
 const int SDA_PIN = 12;
 const int SCK_PIN = 13;
-const char* endpoint = "<API URL>";
+const char* base_url = "**********";
 void startCameraServer();
 
 void setup() {
