@@ -114,11 +114,11 @@ void setup() {
   Serial.println("");
   Serial.println("WiFi connected");
 
-  startCameraServer();
-
-  Serial.print("Camera Ready! Use 'http://");
-  Serial.print(WiFi.localIP());
-  Serial.println("' to connect");
+//  startCameraServer();
+//
+//  Serial.print("Camera Ready! Use 'http://");
+//  Serial.print(WiFi.localIP());
+//  Serial.println("' to connect");
 }
 
 

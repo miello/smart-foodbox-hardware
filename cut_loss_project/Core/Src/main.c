@@ -80,18 +80,18 @@ const osMutexAttr_t WeightMutex_attributes = {
   .name = "WeightMutex"
 };
 /* USER CODE BEGIN PV */
-const uint32_t AVERAGE_ROUND = 30;
+const uint32_t AVERAGE_ROUND = 25;
 uint32_t base_weight = 0;
-uint32_t result_offset = 7000;
-uint32_t divider = 60;
+uint32_t result_offset = 8000;
+uint32_t divider = 70;
 uint32_t AD_RES;
 uint8_t is_reset = 0;
 
 // Positive difference threshold
-const uint32_t POSITIVE_THRESHOLD = 300;
+const uint32_t POSITIVE_THRESHOLD = 150;
 
 // Negative difference threshold
-const uint32_t NEGATIVE_THRESHOLD = 300; // Measurement error in average case is around +-250
+const uint32_t NEGATIVE_THRESHOLD = 150; // Measurement error in average case is around +-250
 
 // Current captured weight
 uint32_t captured_weight = 0;
@@ -573,14 +573,14 @@ void StartWeightSense(void *argument)
 		 * Weight sensing part
 		 */
 		if(is_reset) {
-			osDelay(10);
+			osDelay(20);
 			continue;
 		}
 		now_weight = read_weight_average();
 		uint8_t is_transmit_data = 0, is_set_data = 0;
 		if (now_weight > captured_weight
 				&& now_weight - captured_weight >= POSITIVE_THRESHOLD) {
-			osDelay(50);
+			osDelay(1);
 			now_weight = read_weight_average();
 			if (now_weight > captured_weight
 					&& now_weight - captured_weight >= POSITIVE_THRESHOLD) {
@@ -590,7 +590,7 @@ void StartWeightSense(void *argument)
 		} else if (now_weight < captured_weight
 				&& captured_weight - now_weight >= NEGATIVE_THRESHOLD) {
 			// There may have some of measurement delay when place object
-			osDelay(50);
+			osDelay(1);
 			now_weight = read_weight_average();
 			if (now_weight < captured_weight
 					&& captured_weight - now_weight >= NEGATIVE_THRESHOLD) {
@@ -603,7 +603,7 @@ void StartWeightSense(void *argument)
 		 * 1) Send data length
 		 * 2) Send data content
 		 */
-		if(is_set_data) {
+		if(is_set_data && !is_reset) {
 			uint32_t tmp = captured_weight;
 			captured_weight = now_weight;
 			if (is_transmit_data) {
@@ -625,7 +625,7 @@ void StartWeightSense(void *argument)
 				}
 			}
 		}
-		osDelay(50);
+		osDelay(20);
 	}
   /* USER CODE END StartWeightSense */
 }
@@ -689,7 +689,7 @@ void StartWatchLDR(void *argument)
 		LDR_MX = tmp > LDR_MX ? tmp : LDR_MX;
 		LDR_MN = tmp < LDR_MN ? tmp : LDR_MN;
 
-		if (calC < 0.4) {
+		if (calC < 0.35) {
 			HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
 		} else {
 			HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);

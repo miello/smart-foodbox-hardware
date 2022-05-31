@@ -37,13 +37,13 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  16 .debug_macro  000031da  00000000  00000000  0003e648  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_line   00014cc2  00000000  00000000  00041822  2**0
+ 17 .debug_line   00014cd0  00000000  00000000  00041822  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    0009db62  00000000  00000000  000564e4  2**0
+ 18 .debug_str    0009db62  00000000  00000000  000564f2  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000053  00000000  00000000  000f4046  2**0
+ 19 .comment      00000053  00000000  00000000  000f4054  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  0000518c  00000000  00000000  000f409c  2**2
+ 20 .debug_frame  0000518c  00000000  00000000  000f40a8  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -1055,7 +1055,7 @@ uint32_t read_weight_average() {
  8000b56:	3301      	adds	r3, #1
  8000b58:	60bb      	str	r3, [r7, #8]
  8000b5a:	68bb      	ldr	r3, [r7, #8]
- 8000b5c:	221e      	movs	r2, #30
+ 8000b5c:	2219      	movs	r2, #25
  8000b5e:	4293      	cmp	r3, r2
  8000b60:	d3e8      	bcc.n	8000b34 <read_weight_average+0x10>
 	}
@@ -1074,7 +1074,7 @@ uint32_t read_weight_average() {
  8000b72:	681b      	ldr	r3, [r3, #0]
  8000b74:	68fa      	ldr	r2, [r7, #12]
  8000b76:	1ad3      	subs	r3, r2, r3
- 8000b78:	221e      	movs	r2, #30
+ 8000b78:	2219      	movs	r2, #25
  8000b7a:	fbb3 f3f2 	udiv	r3, r3, r2
 }
  8000b7e:	4618      	mov	r0, r3
@@ -1125,14 +1125,14 @@ void set_zero_weight() {
  8000bc6:	3301      	adds	r3, #1
  8000bc8:	60bb      	str	r3, [r7, #8]
  8000bca:	68bb      	ldr	r3, [r7, #8]
- 8000bcc:	221e      	movs	r2, #30
+ 8000bcc:	2219      	movs	r2, #25
  8000bce:	4293      	cmp	r3, r2
  8000bd0:	d3e6      	bcc.n	8000ba0 <set_zero_weight+0x10>
 		}
 	}
 
 	now /= AVERAGE_ROUND;
- 8000bd2:	221e      	movs	r2, #30
+ 8000bd2:	2219      	movs	r2, #25
  8000bd4:	68fb      	ldr	r3, [r7, #12]
  8000bd6:	fbb3 f3f2 	udiv	r3, r3, r2
  8000bda:	60fb      	str	r3, [r7, #12]
@@ -1944,8 +1944,8 @@ void StartWeightSense(void *argument)
  8001082:	781b      	ldrb	r3, [r3, #0]
  8001084:	2b00      	cmp	r3, #0
  8001086:	d003      	beq.n	8001090 <StartWeightSense+0x18>
-			osDelay(10);
- 8001088:	200a      	movs	r0, #10
+			osDelay(20);
+ 8001088:	2014      	movs	r0, #20
  800108a:	f002 fdd7 	bl	8003c3c <osDelay>
 			continue;
  800108e:	e0b7      	b.n	8001200 <StartWeightSense+0x188>
@@ -1966,105 +1966,109 @@ void StartWeightSense(void *argument)
  80010aa:	4b58      	ldr	r3, [pc, #352]	; (800120c <StartWeightSense+0x194>)
  80010ac:	681b      	ldr	r3, [r3, #0]
  80010ae:	429a      	cmp	r2, r3
- 80010b0:	d926      	bls.n	8001100 <StartWeightSense+0x88>
+ 80010b0:	d924      	bls.n	80010fc <StartWeightSense+0x84>
 				&& now_weight - captured_weight >= POSITIVE_THRESHOLD) {
  80010b2:	4b55      	ldr	r3, [pc, #340]	; (8001208 <StartWeightSense+0x190>)
  80010b4:	681a      	ldr	r2, [r3, #0]
  80010b6:	4b55      	ldr	r3, [pc, #340]	; (800120c <StartWeightSense+0x194>)
  80010b8:	681b      	ldr	r3, [r3, #0]
  80010ba:	1ad3      	subs	r3, r2, r3
- 80010bc:	f44f 7296 	mov.w	r2, #300	; 0x12c
- 80010c0:	4293      	cmp	r3, r2
- 80010c2:	d31d      	bcc.n	8001100 <StartWeightSense+0x88>
-			osDelay(50);
- 80010c4:	2032      	movs	r0, #50	; 0x32
- 80010c6:	f002 fdb9 	bl	8003c3c <osDelay>
+ 80010bc:	2296      	movs	r2, #150	; 0x96
+ 80010be:	4293      	cmp	r3, r2
+ 80010c0:	d31c      	bcc.n	80010fc <StartWeightSense+0x84>
+			osDelay(1);
+ 80010c2:	2001      	movs	r0, #1
+ 80010c4:	f002 fdba 	bl	8003c3c <osDelay>
 			now_weight = read_weight_average();
- 80010ca:	f7ff fd2b 	bl	8000b24 <read_weight_average>
- 80010ce:	4603      	mov	r3, r0
- 80010d0:	4a4d      	ldr	r2, [pc, #308]	; (8001208 <StartWeightSense+0x190>)
- 80010d2:	6013      	str	r3, [r2, #0]
+ 80010c8:	f7ff fd2c 	bl	8000b24 <read_weight_average>
+ 80010cc:	4603      	mov	r3, r0
+ 80010ce:	4a4e      	ldr	r2, [pc, #312]	; (8001208 <StartWeightSense+0x190>)
+ 80010d0:	6013      	str	r3, [r2, #0]
 			if (now_weight > captured_weight
- 80010d4:	4b4c      	ldr	r3, [pc, #304]	; (8001208 <StartWeightSense+0x190>)
- 80010d6:	681a      	ldr	r2, [r3, #0]
- 80010d8:	4b4c      	ldr	r3, [pc, #304]	; (800120c <StartWeightSense+0x194>)
- 80010da:	681b      	ldr	r3, [r3, #0]
- 80010dc:	429a      	cmp	r2, r3
- 80010de:	d939      	bls.n	8001154 <StartWeightSense+0xdc>
+ 80010d2:	4b4d      	ldr	r3, [pc, #308]	; (8001208 <StartWeightSense+0x190>)
+ 80010d4:	681a      	ldr	r2, [r3, #0]
+ 80010d6:	4b4d      	ldr	r3, [pc, #308]	; (800120c <StartWeightSense+0x194>)
+ 80010d8:	681b      	ldr	r3, [r3, #0]
+ 80010da:	429a      	cmp	r2, r3
+ 80010dc:	d936      	bls.n	800114c <StartWeightSense+0xd4>
 					&& now_weight - captured_weight >= POSITIVE_THRESHOLD) {
- 80010e0:	4b49      	ldr	r3, [pc, #292]	; (8001208 <StartWeightSense+0x190>)
- 80010e2:	681a      	ldr	r2, [r3, #0]
- 80010e4:	4b49      	ldr	r3, [pc, #292]	; (800120c <StartWeightSense+0x194>)
- 80010e6:	681b      	ldr	r3, [r3, #0]
- 80010e8:	1ad3      	subs	r3, r2, r3
- 80010ea:	f44f 7296 	mov.w	r2, #300	; 0x12c
- 80010ee:	4293      	cmp	r3, r2
- 80010f0:	d330      	bcc.n	8001154 <StartWeightSense+0xdc>
+ 80010de:	4b4a      	ldr	r3, [pc, #296]	; (8001208 <StartWeightSense+0x190>)
+ 80010e0:	681a      	ldr	r2, [r3, #0]
+ 80010e2:	4b4a      	ldr	r3, [pc, #296]	; (800120c <StartWeightSense+0x194>)
+ 80010e4:	681b      	ldr	r3, [r3, #0]
+ 80010e6:	1ad3      	subs	r3, r2, r3
+ 80010e8:	2296      	movs	r2, #150	; 0x96
+ 80010ea:	4293      	cmp	r3, r2
+ 80010ec:	d32e      	bcc.n	800114c <StartWeightSense+0xd4>
 				is_transmit_data = 1;
- 80010f2:	2301      	movs	r3, #1
- 80010f4:	f887 3037 	strb.w	r3, [r7, #55]	; 0x37
+ 80010ee:	2301      	movs	r3, #1
+ 80010f0:	f887 3037 	strb.w	r3, [r7, #55]	; 0x37
 				is_set_data = 1;
- 80010f8:	2301      	movs	r3, #1
- 80010fa:	f887 3036 	strb.w	r3, [r7, #54]	; 0x36
+ 80010f4:	2301      	movs	r3, #1
+ 80010f6:	f887 3036 	strb.w	r3, [r7, #54]	; 0x36
 			if (now_weight > captured_weight
- 80010fe:	e029      	b.n	8001154 <StartWeightSense+0xdc>
+ 80010fa:	e027      	b.n	800114c <StartWeightSense+0xd4>
 			}
 		} else if (now_weight < captured_weight
- 8001100:	4b41      	ldr	r3, [pc, #260]	; (8001208 <StartWeightSense+0x190>)
- 8001102:	681a      	ldr	r2, [r3, #0]
- 8001104:	4b41      	ldr	r3, [pc, #260]	; (800120c <StartWeightSense+0x194>)
- 8001106:	681b      	ldr	r3, [r3, #0]
- 8001108:	429a      	cmp	r2, r3
- 800110a:	d224      	bcs.n	8001156 <StartWeightSense+0xde>
+ 80010fc:	4b42      	ldr	r3, [pc, #264]	; (8001208 <StartWeightSense+0x190>)
+ 80010fe:	681a      	ldr	r2, [r3, #0]
+ 8001100:	4b42      	ldr	r3, [pc, #264]	; (800120c <StartWeightSense+0x194>)
+ 8001102:	681b      	ldr	r3, [r3, #0]
+ 8001104:	429a      	cmp	r2, r3
+ 8001106:	d222      	bcs.n	800114e <StartWeightSense+0xd6>
 				&& captured_weight - now_weight >= NEGATIVE_THRESHOLD) {
- 800110c:	4b3f      	ldr	r3, [pc, #252]	; (800120c <StartWeightSense+0x194>)
- 800110e:	681a      	ldr	r2, [r3, #0]
- 8001110:	4b3d      	ldr	r3, [pc, #244]	; (8001208 <StartWeightSense+0x190>)
- 8001112:	681b      	ldr	r3, [r3, #0]
- 8001114:	1ad3      	subs	r3, r2, r3
- 8001116:	f44f 7296 	mov.w	r2, #300	; 0x12c
- 800111a:	4293      	cmp	r3, r2
- 800111c:	d31b      	bcc.n	8001156 <StartWeightSense+0xde>
+ 8001108:	4b40      	ldr	r3, [pc, #256]	; (800120c <StartWeightSense+0x194>)
+ 800110a:	681a      	ldr	r2, [r3, #0]
+ 800110c:	4b3e      	ldr	r3, [pc, #248]	; (8001208 <StartWeightSense+0x190>)
+ 800110e:	681b      	ldr	r3, [r3, #0]
+ 8001110:	1ad3      	subs	r3, r2, r3
+ 8001112:	2296      	movs	r2, #150	; 0x96
+ 8001114:	4293      	cmp	r3, r2
+ 8001116:	d31a      	bcc.n	800114e <StartWeightSense+0xd6>
 			// There may have some of measurement delay when place object
-			osDelay(50);
- 800111e:	2032      	movs	r0, #50	; 0x32
- 8001120:	f002 fd8c 	bl	8003c3c <osDelay>
+			osDelay(1);
+ 8001118:	2001      	movs	r0, #1
+ 800111a:	f002 fd8f 	bl	8003c3c <osDelay>
 			now_weight = read_weight_average();
- 8001124:	f7ff fcfe 	bl	8000b24 <read_weight_average>
- 8001128:	4603      	mov	r3, r0
- 800112a:	4a37      	ldr	r2, [pc, #220]	; (8001208 <StartWeightSense+0x190>)
- 800112c:	6013      	str	r3, [r2, #0]
+ 800111e:	f7ff fd01 	bl	8000b24 <read_weight_average>
+ 8001122:	4603      	mov	r3, r0
+ 8001124:	4a38      	ldr	r2, [pc, #224]	; (8001208 <StartWeightSense+0x190>)
+ 8001126:	6013      	str	r3, [r2, #0]
 			if (now_weight < captured_weight
- 800112e:	4b36      	ldr	r3, [pc, #216]	; (8001208 <StartWeightSense+0x190>)
- 8001130:	681a      	ldr	r2, [r3, #0]
- 8001132:	4b36      	ldr	r3, [pc, #216]	; (800120c <StartWeightSense+0x194>)
- 8001134:	681b      	ldr	r3, [r3, #0]
- 8001136:	429a      	cmp	r2, r3
- 8001138:	d20d      	bcs.n	8001156 <StartWeightSense+0xde>
+ 8001128:	4b37      	ldr	r3, [pc, #220]	; (8001208 <StartWeightSense+0x190>)
+ 800112a:	681a      	ldr	r2, [r3, #0]
+ 800112c:	4b37      	ldr	r3, [pc, #220]	; (800120c <StartWeightSense+0x194>)
+ 800112e:	681b      	ldr	r3, [r3, #0]
+ 8001130:	429a      	cmp	r2, r3
+ 8001132:	d20c      	bcs.n	800114e <StartWeightSense+0xd6>
 					&& captured_weight - now_weight >= NEGATIVE_THRESHOLD) {
- 800113a:	4b34      	ldr	r3, [pc, #208]	; (800120c <StartWeightSense+0x194>)
- 800113c:	681a      	ldr	r2, [r3, #0]
- 800113e:	4b32      	ldr	r3, [pc, #200]	; (8001208 <StartWeightSense+0x190>)
- 8001140:	681b      	ldr	r3, [r3, #0]
- 8001142:	1ad3      	subs	r3, r2, r3
- 8001144:	f44f 7296 	mov.w	r2, #300	; 0x12c
- 8001148:	4293      	cmp	r3, r2
- 800114a:	d304      	bcc.n	8001156 <StartWeightSense+0xde>
+ 8001134:	4b35      	ldr	r3, [pc, #212]	; (800120c <StartWeightSense+0x194>)
+ 8001136:	681a      	ldr	r2, [r3, #0]
+ 8001138:	4b33      	ldr	r3, [pc, #204]	; (8001208 <StartWeightSense+0x190>)
+ 800113a:	681b      	ldr	r3, [r3, #0]
+ 800113c:	1ad3      	subs	r3, r2, r3
+ 800113e:	2296      	movs	r2, #150	; 0x96
+ 8001140:	4293      	cmp	r3, r2
+ 8001142:	d304      	bcc.n	800114e <StartWeightSense+0xd6>
 				is_set_data = 1;
- 800114c:	2301      	movs	r3, #1
- 800114e:	f887 3036 	strb.w	r3, [r7, #54]	; 0x36
- 8001152:	e000      	b.n	8001156 <StartWeightSense+0xde>
+ 8001144:	2301      	movs	r3, #1
+ 8001146:	f887 3036 	strb.w	r3, [r7, #54]	; 0x36
+ 800114a:	e000      	b.n	800114e <StartWeightSense+0xd6>
 			if (now_weight > captured_weight
- 8001154:	bf00      	nop
+ 800114c:	bf00      	nop
 		/**
 		 * Transmit data to esp, the transfer data process has 2 steps
 		 * 1) Send data length
 		 * 2) Send data content
 		 */
-		if(is_set_data) {
- 8001156:	f897 3036 	ldrb.w	r3, [r7, #54]	; 0x36
+		if(is_set_data && !is_reset) {
+ 800114e:	f897 3036 	ldrb.w	r3, [r7, #54]	; 0x36
+ 8001152:	2b00      	cmp	r3, #0
+ 8001154:	d051      	beq.n	80011fa <StartWeightSense+0x182>
+ 8001156:	4b2b      	ldr	r3, [pc, #172]	; (8001204 <StartWeightSense+0x18c>)
+ 8001158:	781b      	ldrb	r3, [r3, #0]
  800115a:	2b00      	cmp	r3, #0
- 800115c:	d04d      	beq.n	80011fa <StartWeightSense+0x182>
+ 800115c:	d14d      	bne.n	80011fa <StartWeightSense+0x182>
 			uint32_t tmp = captured_weight;
  800115e:	4b2b      	ldr	r3, [pc, #172]	; (800120c <StartWeightSense+0x194>)
  8001160:	681b      	ldr	r3, [r3, #0]
@@ -2148,8 +2152,8 @@ void StartWeightSense(void *argument)
 				}
 			}
 		}
-		osDelay(50);
- 80011fa:	2032      	movs	r0, #50	; 0x32
+		osDelay(20);
+ 80011fa:	2014      	movs	r0, #20
  80011fc:	f002 fd1e 	bl	8003c3c <osDelay>
 	for (;;) {
  8001200:	e73e      	b.n	8001080 <StartWeightSense+0x8>
@@ -2329,7 +2333,7 @@ void StartWatchLDR(void *argument)
  800134c:	4a15      	ldr	r2, [pc, #84]	; (80013a4 <StartWatchLDR+0xf4>)
  800134e:	6013      	str	r3, [r2, #0]
 
-		if (calC < 0.4) {
+		if (calC < 0.35) {
  8001350:	68b8      	ldr	r0, [r7, #8]
  8001352:	f7ff f8f9 	bl	8000548 <__aeabi_f2d>
  8001356:	a30e      	add	r3, pc, #56	; (adr r3, 8001390 <StartWatchLDR+0xe0>)
@@ -2359,8 +2363,8 @@ void StartWatchLDR(void *argument)
  8001388:	e796      	b.n	80012b8 <StartWatchLDR+0x8>
  800138a:	bf00      	nop
  800138c:	f3af 8000 	nop.w
- 8001390:	9999999a 	.word	0x9999999a
- 8001394:	3fd99999 	.word	0x3fd99999
+ 8001390:	66666666 	.word	0x66666666
+ 8001394:	3fd66666 	.word	0x3fd66666
  8001398:	20004a30 	.word	0x20004a30
  800139c:	200049cc 	.word	0x200049cc
  80013a0:	20000008 	.word	0x20000008
