@@ -25,6 +25,8 @@
 const char* ssid = "********";
 const char* password = "********";
 const int LED_PIN = 33;
+const int FLASH_LIGHT_PIN = 4;
+const int FLASH_INPUT_PIN = 15;
 const int SDA_PIN = 12;
 const int SCK_PIN = 13;
 const char* endpoint = "<API URL>";
@@ -35,6 +37,8 @@ void setup() {
   Serial.setDebugOutput(true);
   Serial.println();
   pinMode(LED_PIN, OUTPUT);
+  pinMode(FLASH_LIGHT_PIN, OUTPUT);
+  pinMode(FLASH_INPUT_PIN, INPUT);
   Wire.begin(SDA_PIN, SCK_PIN);
   
   for (uint8_t t = 4; t > 0; t--) {
@@ -124,6 +128,8 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
+  digitalWrite(FLASH_LIGHT_PIN, digitalRead(FLASH_INPUT_PIN));
+  
   // request size of data
   Wire.requestFrom(1, 2);
   
