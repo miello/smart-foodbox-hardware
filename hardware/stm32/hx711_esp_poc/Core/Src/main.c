@@ -106,6 +106,10 @@ uint32_t read_weight(uint8_t tuning) {
 	}
 
 	count ^= 0x800000;
+	HAL_GPIO_WritePin(Weight_SDA_GPIO_Port, Weight_SDA_Pin, GPIO_PIN_SET);
+	hx711_delay_us(20);
+	HAL_GPIO_WritePin(Weight_SDA_GPIO_Port, Weight_SDA_Pin, GPIO_PIN_RESET);
+	hx711_delay_us(20);
 
 	if(tuning == 1) return count;
 	if(count < base_weight) return 0;
