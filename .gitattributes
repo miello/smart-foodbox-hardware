@@ -4,4 +4,3 @@ hardware/stm32/**/Drivers/** linguist-vendored
 hardware/stm32/**/Core/Startup/** linguist-vendored
 hardware/stm32/**/Core/Src/stm32*.c linguist-vendored
 hardware/stm32/**/Core/Src/sys*.c linguist-vendored
-hardware/stm32/**/Core/Src/MFRC522.c linguist-vendored
