@@ -38,34 +38,34 @@ $(wildcard ../makefile.init) \
 $(wildcard ../makefile.targets) \
 
 
-BUILD_ARTIFACT_NAME := cut_loss_project
+BUILD_ARTIFACT_NAME := final_code
 BUILD_ARTIFACT_EXTENSION := elf
 BUILD_ARTIFACT_PREFIX :=
 BUILD_ARTIFACT := $(BUILD_ARTIFACT_PREFIX)$(BUILD_ARTIFACT_NAME)$(if $(BUILD_ARTIFACT_EXTENSION),.$(BUILD_ARTIFACT_EXTENSION),)
 
 # Add inputs and outputs from these tool invocations to the build variables 
 EXECUTABLES += \
-cut_loss_project.elf \
+final_code.elf \
 
 SIZE_OUTPUT += \
 default.size.stdout \
 
 OBJDUMP_LIST += \
-cut_loss_project.list \
+final_code.list \
 
 OBJCOPY_BIN += \
-cut_loss_project.bin \
+final_code.bin \
 
 
 # All Target
 all: main-build
 
 # Main-build Target
-main-build: cut_loss_project.elf secondary-outputs
+main-build: final_code.elf secondary-outputs
 
 # Tool invocations
-cut_loss_project.elf: $(OBJS) $(USER_OBJS) E:\smart-foodbox-hardware\cut_loss_project\STM32F411RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "cut_loss_project.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"E:\smart-foodbox-hardware\cut_loss_project\STM32F411RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="cut_loss_project.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+final_code.elf: $(OBJS) $(USER_OBJS) E:\smart-foodbox-hardware\hardware\stm32\final_code\STM32F411RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "final_code.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"E:\smart-foodbox-hardware\hardware\stm32\final_code\STM32F411RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="final_code.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -74,19 +74,19 @@ default.size.stdout: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
 	@echo 'Finished building: $@'
 	@echo ' '
 
-cut_loss_project.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "cut_loss_project.list"
+final_code.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "final_code.list"
 	@echo 'Finished building: $@'
 	@echo ' '
 
-cut_loss_project.bin: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-objcopy  -O binary $(EXECUTABLES) "cut_loss_project.bin"
+final_code.bin: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-objcopy  -O binary $(EXECUTABLES) "final_code.bin"
 	@echo 'Finished building: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) cut_loss_project.bin cut_loss_project.elf cut_loss_project.list default.size.stdout
+	-$(RM) default.size.stdout final_code.bin final_code.elf final_code.list
 	-@echo ' '
 
 secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST) $(OBJCOPY_BIN)
