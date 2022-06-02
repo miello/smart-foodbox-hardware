@@ -1,6 +1,9 @@
-# smart-foodbox-hardware
+# Smart Foodbox
 
 2110366 Embedded System Lab final project
+
+## Description
+Foodbox that notify user from website when package is placed on foodbox
 
 ## Source Code  
 - Final source code for hardware esp32-cam and stm32 can be found in this [link](https://github.com/miello/smart-foodbox-hardware/tree/main/hardware)
