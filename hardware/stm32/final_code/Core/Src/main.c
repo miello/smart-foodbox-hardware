@@ -236,6 +236,16 @@ int main(void) {
 	captured_weight = read_weight_average();
 	// ESP Connection Testing
 	HAL_StatusTypeDef esp_check;
+	while (1) {
+		esp_check = HAL_I2C_Slave_Transmit(&hi2c1, "04", 2, 1000);
+		esp_check |= HAL_I2C_Slave_Transmit(&hi2c1, "Test", 4, 1000);
+
+		if (esp_check == HAL_OK)
+			break;
+		HAL_UART_Transmit(&huart2, "Failed to reach esp8266. Retrying\r\n", 35,
+				3000);
+		HAL_Delay(1000);
+	}
 
 	// Set LED on board to tell that Program is ready
 	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
@@ -530,16 +540,7 @@ void StartDefaultTask(void *argument) {
 /* USER CODE END Header_StartWeightSense */
 void StartWeightSense(void *argument) {
 	/* USER CODE BEGIN StartWeightSense */
-	while (1) {
-		esp_check = HAL_I2C_Slave_Transmit(&hi2c1, "04", 2, 1000);
-		esp_check |= HAL_I2C_Slave_Transmit(&hi2c1, "Test", 4, 1000);
 
-		if (esp_check == HAL_OK)
-			break;
-		HAL_UART_Transmit(&huart2, "Failed to reach esp8266. Retrying\r\n", 35,
-				3000);
-		HAL_Delay(1000);
-	}
 	/* Infinite loop */
 	for (;;) {
 		/**
@@ -553,7 +554,7 @@ void StartWeightSense(void *argument) {
 		uint8_t is_transmit_data = 0, is_set_data = 0;
 		if (now_weight > captured_weight
 				&& now_weight - captured_weight >= POSITIVE_THRESHOLD) {
-			osDelay(10);
+			osDelay(50);
 			now_weight = read_weight_average();
 			if (now_weight > captured_weight
 					&& now_weight - captured_weight >= POSITIVE_THRESHOLD) {
@@ -563,7 +564,7 @@ void StartWeightSense(void *argument) {
 		} else if (now_weight < captured_weight
 				&& captured_weight - now_weight >= NEGATIVE_THRESHOLD) {
 			// There may have some of measurement delay when place object
-			osDelay(10);
+			osDelay(50);
 			now_weight = read_weight_average();
 			if (now_weight < captured_weight
 					&& captured_weight - now_weight >= NEGATIVE_THRESHOLD) {
